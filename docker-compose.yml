@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: retread-db
+    environment:
+      POSTGRES_DB: retread_db
+      POSTGRES_USER: retread_user
+      POSTGRES_PASSWORD: retread_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
