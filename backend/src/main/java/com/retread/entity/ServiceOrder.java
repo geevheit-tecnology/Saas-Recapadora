@@ -38,10 +38,12 @@ public class ServiceOrder {
 
     private BigDecimal totalAmount;
 
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Lado "Pai" da relação
     private List<OrderItem> items = new ArrayList<>();
 
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "serviceOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Lado "Pai" da relação
     private List<Tire> tires = new ArrayList<>();

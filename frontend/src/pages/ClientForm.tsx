@@ -26,7 +26,13 @@ const ClientForm: React.FC = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const data = { name, taxId, phone, email, address };
+            const data = {
+                name: name.trim(),
+                taxId: taxId.trim() || null,
+                phone: phone.trim() || null,
+                email: email.trim() || null,
+                address: address.trim() || null
+            };
             if (id) await api.put(`/clients/${id}`, data);
             else await api.post('/clients', data);
             alert("Operação realizada com sucesso!");

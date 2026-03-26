@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios'; // Usamos axios direto para evitar interceptores de auth
+import axios from 'axios';
 import { CheckCircle2, Package, Truck, Construction, XCircle } from 'lucide-react';
 
 const PublicTracking: React.FC = () => {
@@ -9,7 +9,8 @@ const PublicTracking: React.FC = () => {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        axios.get(`http://localhost:8080/api/orders/track/${id}`)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+        axios.get(`${baseUrl}/orders/track/${id}`)
             .then(res => setOrder(res.data))
             .catch(() => setError(true));
     }, [id]);

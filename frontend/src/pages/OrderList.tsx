@@ -17,7 +17,7 @@ const OrderList: React.FC = () => {
         loadOrders();
     }, []);
 
-    const loadOrders = async () => {
+    async function loadOrders() {
         try {
             const response = await api.get('/orders');
             setOrders(response.data);
@@ -28,7 +28,7 @@ const OrderList: React.FC = () => {
 
     const handleStatusChange = async (id: number, newStatus: string) => {
         try {
-            await api.patch(`/orders/${id}/status`, newStatus);
+            await api.patch(`/orders/${id}/status`, { status: newStatus });
             loadOrders();
         } catch (error) {
             console.error("Erro ao atualizar status", error);

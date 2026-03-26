@@ -57,9 +57,10 @@ public class UserController {
         if (role == null || role.isBlank()) {
             return "ROLE_USER";
         }
-        if (role.startsWith("ROLE_")) {
-            return role;
+        String normalized = role.trim().toUpperCase();
+        if ("ROLE_ADMIN".equals(normalized) || "ADMIN".equals(normalized)) {
+            return "ROLE_ADMIN";
         }
-        return "ROLE_" + role;
+        return "ROLE_USER";
     }
 }

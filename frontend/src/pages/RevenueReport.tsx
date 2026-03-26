@@ -10,7 +10,7 @@ const RevenueReport: React.FC = () => {
 
     useEffect(() => { loadData(); }, []);
 
-    const loadData = async () => {
+    async function loadData() {
         setLoading(true);
         setError(null);
         try {

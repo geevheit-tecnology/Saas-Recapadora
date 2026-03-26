@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Plus, Trash2, Tag } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const PriceTable: React.FC = () => {
     const [prices, setPrices] = useState<any[]>([]);
     const [showForm, setShowForm] = useState(false);
+    const { role } = useAuth();
+    const isAdmin = role === 'ROLE_ADMIN';
     
     const [tireSize, setTireSize] = useState('');
     const [serviceName, setServiceName] = useState('');
@@ -12,19 +15,30 @@ const PriceTable: React.FC = () => {
 
     useEffect(() => { loadPrices(); }, []);
 
-    const loadPrices = async () => {
+    async function loadPrices() {
         const res = await api.get('/service-prices');
         setPrices(res.data);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const priceNumber = parseFloat(price);
+        if (Number.isNaN(priceNumber) || priceNumber <= 0) {
+            alert("Informe um valor valido maior que zero.");
+            return;
+        }
         try {
-            await api.post('/service-prices', { tireSize, serviceName, price });
+            await api.post('/service-prices', {
+                tireSize: tireSize.trim().toUpperCase(),
+                serviceName: serviceName.trim().toUpperCase(),
+                price: priceNumber
+            });
             setTireSize(''); setServiceName(''); setPrice('');
             setShowForm(false);
             loadPrices();
-        } catch (e) { alert("Erro ao salvar preço"); }
+        } catch (e: any) {
+            alert("Erro ao salvar preço: " + (e.response?.data?.message || "Verifique os dados informados"));
+        }
     };
 
     const handleDelete = async (id: number) => {
@@ -41,15 +55,17 @@ const PriceTable: React.FC = () => {
                     <h2 className="text-3xl font-black text-slate-800 tracking-tighter uppercase italic">Tabela de Preços</h2>
                     <p className="text-slate-500 font-medium italic underline decoration-blue-500 underline-offset-4 tracking-tight">Configuração comercial estratégica</p>
                 </div>
-                <button 
-                    onClick={() => setShowForm(!showForm)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg shadow-blue-100 transition-all hover:scale-105 uppercase text-xs tracking-widest"
-                >
-                    <Plus size={16} /> {showForm ? 'Fechar' : 'Novo Preço'}
-                </button>
+                {isAdmin && (
+                    <button 
+                        onClick={() => setShowForm(!showForm)}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg shadow-blue-100 transition-all hover:scale-105 uppercase text-xs tracking-widest"
+                    >
+                        <Plus size={16} /> {showForm ? 'Fechar' : 'Novo Preço'}
+                    </button>
+                )}
             </div>
 
-            {showForm && (
+            {showForm && isAdmin && (
                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-blue-50 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top duration-300">
                     <div>
                         <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Medida do Pneu</label>
@@ -80,7 +96,7 @@ const PriceTable: React.FC = () => {
                 {prices.map(p => (
                     <div key={p.id} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:border-blue-200 transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleDelete(p.id)} className="text-rose-400 hover:text-rose-600"><Trash2 size={18} /></button>
+                            {isAdmin && <button onClick={() => handleDelete(p.id)} className="text-rose-400 hover:text-rose-600"><Trash2 size={18} /></button>}
                         </div>
                         <div className="flex items-center gap-4 mb-6">
                             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">

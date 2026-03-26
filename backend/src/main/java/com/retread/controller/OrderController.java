@@ -12,13 +12,19 @@ import jakarta.validation.constraints.NotBlank;
 import com.retread.repository.ClientRepository;
 import com.retread.repository.ProductRepository;
 import com.retread.repository.ServiceOrderRepository;
+import com.retread.repository.TireRepository;
 import com.retread.service.ProductService;
 import com.retread.service.TenantAccessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -37,11 +43,16 @@ public class OrderController {
     private ProductService productService;
 
     @Autowired
+    private TireRepository tireRepository;
+
+    @Autowired
     private TenantAccessService tenantAccessService;
 
     @GetMapping
-    public List<ServiceOrder> getAllOrders() {
-        return orderRepository.findAllByTenant_Id(tenantAccessService.getRequiredTenantId());
+    public List<OrderSummaryResponse> getAllOrders() {
+        return orderRepository.findAllByTenant_Id(tenantAccessService.getRequiredTenantId()).stream()
+                .map(OrderSummaryResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
@@ -52,8 +63,10 @@ public class OrderController {
     }
 
     @GetMapping("/track/{id}")
-    public ResponseEntity<ServiceOrder> trackOrder(@PathVariable Long id) {
-        throw new ResourceNotFoundException("Tracking publico por ID foi descontinuado. Use um token publico de rastreio.");
+    public ResponseEntity<PublicTrackingResponse> trackOrder(@PathVariable Long id) {
+        ServiceOrder order = orderRepository.findOneById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ordem nao encontrada"));
+        return ResponseEntity.ok(PublicTrackingResponse.from(order));
     }
 
     @PostMapping
@@ -87,9 +100,21 @@ public class OrderController {
         }
 
         if (order.getTires() != null) {
+            Set<String> serialNumbersInRequest = new HashSet<>();
             for (Tire tire : order.getTires()) {
+                if (tire.getSerialNumber() == null || tire.getSerialNumber().isBlank()) {
+                    throw new BusinessRuleException("Todo pneu da coleta precisa informar numero de serie");
+                }
+                String normalizedSerial = tire.getSerialNumber().trim().toUpperCase();
+                if (!serialNumbersInRequest.add(normalizedSerial)) {
+                    throw new BusinessRuleException("A coleta contem pneus duplicados com o numero de serie " + normalizedSerial);
+                }
+                if (tireRepository.existsBySerialNumberIgnoreCaseAndTenant_Id(normalizedSerial, tenantId)) {
+                    throw new BusinessRuleException("Ja existe um pneu cadastrado com o numero de serie " + normalizedSerial);
+                }
                 tire.setServiceOrder(order);
                 tire.setTenant(order.getTenant());
+                tire.setSerialNumber(normalizedSerial);
                 // Força o status inicial caso venha vazio
                 if (tire.getStatus() == null) {
                     tire.setStatus(TireStatus.COLLECTED);
@@ -113,6 +138,84 @@ public class OrderController {
 
     public record UpdateOrderStatusRequest(
             @NotBlank String status
+    ) {
+    }
+
+    public record OrderSummaryResponse(
+            Long id,
+            ClientSummary client,
+            LocalDateTime orderDate,
+            String status,
+            BigDecimal totalAmount,
+            List<TireSummary> tires,
+            String fiscalNoteStatus,
+            String billingStatus,
+            String billingUrl
+    ) {
+        static OrderSummaryResponse from(ServiceOrder order) {
+            return new OrderSummaryResponse(
+                    order.getId(),
+                    new ClientSummary(order.getClient().getId(), order.getClient().getName(), order.getClient().getPhone()),
+                    order.getOrderDate(),
+                    order.getStatus() != null ? order.getStatus().name() : null,
+                    order.getTotalAmount(),
+                    order.getTires().stream()
+                            .map(tire -> new TireSummary(tire.getId(), tire.getStatus() != null ? tire.getStatus().name() : null))
+                            .collect(Collectors.toList()),
+                    order.getFiscalNoteStatus(),
+                    order.getBillingStatus(),
+                    order.getBillingUrl()
+            );
+        }
+    }
+
+    public record ClientSummary(
+            Long id,
+            String name,
+            String phone
+    ) {
+    }
+
+    public record TireSummary(
+            Long id,
+            String status
+    ) {
+    }
+
+    public record PublicTrackingResponse(
+            Long id,
+            ClientSummary client,
+            String status,
+            List<PublicTrackingTireResponse> tires
+    ) {
+        static PublicTrackingResponse from(ServiceOrder order) {
+            return new PublicTrackingResponse(
+                    order.getId(),
+                    new ClientSummary(
+                            order.getClient().getId(),
+                            order.getClient().getName(),
+                            order.getClient().getPhone()
+                    ),
+                    order.getStatus() != null ? order.getStatus().name() : null,
+                    order.getTires().stream()
+                            .map(tire -> new PublicTrackingTireResponse(
+                                    tire.getId(),
+                                    tire.getBrand(),
+                                    tire.getSize(),
+                                    tire.getSerialNumber(),
+                                    tire.getStatus() != null ? tire.getStatus().name() : null
+                            ))
+                            .collect(Collectors.toList())
+            );
+        }
+    }
+
+    public record PublicTrackingTireResponse(
+            Long id,
+            String brand,
+            String size,
+            String serialNumber,
+            String status
     ) {
     }
 }

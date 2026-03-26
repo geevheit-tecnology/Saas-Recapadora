@@ -8,7 +8,7 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => { loadStats(); }, []);
 
-    const loadStats = async () => {
+    async function loadStats() {
         try {
             const res = await api.get('/dashboard/stats');
             setStats(res.data || {});

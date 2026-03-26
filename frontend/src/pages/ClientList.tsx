@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface Client {
     id: number;
@@ -13,12 +14,14 @@ interface Client {
 
 const ClientList: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
+    const { role } = useAuth();
+    const isAdmin = role === 'ROLE_ADMIN';
 
     useEffect(() => {
         loadClients();
     }, []);
 
-    const loadClients = async () => {
+    async function loadClients() {
         try {
             const response = await api.get('/clients');
             setClients(response.data);
@@ -70,9 +73,11 @@ const ClientList: React.FC = () => {
                                     <Link to={`/clients/edit/${client.id}`} className="inline-block px-3 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md transition-colors font-medium">
                                         Editar
                                     </Link>
-                                    <button onClick={() => handleDelete(client.id)} className="px-3 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md transition-colors font-medium">
-                                        Excluir
-                                    </button>
+                                    {isAdmin && (
+                                        <button onClick={() => handleDelete(client.id)} className="px-3 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md transition-colors font-medium">
+                                            Excluir
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

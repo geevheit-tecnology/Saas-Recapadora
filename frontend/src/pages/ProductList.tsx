@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface Product {
     id: number;
@@ -13,12 +14,14 @@ interface Product {
 
 const ProductList: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
+    const { role } = useAuth();
+    const isAdmin = role === 'ROLE_ADMIN';
 
     useEffect(() => {
         loadProducts();
     }, []);
 
-    const loadProducts = async () => {
+    async function loadProducts() {
         try {
             const response = await api.get('/products');
             setProducts(response.data);
@@ -42,9 +45,11 @@ const ProductList: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-slate-800">Produtos e Serviços</h2>
-                <Link to="/products/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
-                    + Novo Item
-                </Link>
+                {isAdmin && (
+                    <Link to="/products/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+                        + Novo Item
+                    </Link>
+                )}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -80,12 +85,16 @@ const ProductList: React.FC = () => {
                                     {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </td>
                                 <td className="px-6 py-4 text-center space-x-2 text-xs">
-                                    <Link to={`/products/edit/${product.id}`} className="inline-block px-3 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md transition-colors font-medium">
-                                        Editar
-                                    </Link>
-                                    <button onClick={() => handleDelete(product.id)} className="px-3 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md transition-colors font-medium">
-                                        Excluir
-                                    </button>
+                                    {isAdmin && (
+                                        <>
+                                            <Link to={`/products/edit/${product.id}`} className="inline-block px-3 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md transition-colors font-medium">
+                                                Editar
+                                            </Link>
+                                            <button onClick={() => handleDelete(product.id)} className="px-3 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md transition-colors font-medium">
+                                                Excluir
+                                            </button>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         ))}

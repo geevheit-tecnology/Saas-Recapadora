@@ -34,19 +34,22 @@ const ProductForm: React.FC = () => {
             alert("Preço inválido");
             return;
         }
+        const stockQuantityNum = type === 'SERVICE' ? 0 : parseInt(stockQuantity || '0', 10);
+        if (Number.isNaN(stockQuantityNum) || stockQuantityNum < 0) {
+            alert("Estoque inválido");
+            return;
+        }
 
         setIsLoading(true);
         try {
             const data = { 
                 name: name.toUpperCase(), 
-                description, 
+                description: description.trim() || null, 
                 price: priceNum, 
                 type, 
-                stockQuantity: type === 'SERVICE' ? 0 : parseInt(stockQuantity || '0') 
+                stockQuantity: stockQuantityNum
             };
-            
-            console.log("Enviando produto:", data);
-            
+
             if (id) {
                 await api.put(`/products/${id}`, data);
             } else {
@@ -55,7 +58,6 @@ const ProductForm: React.FC = () => {
             alert("Item salvo com sucesso!");
             navigate('/products');
         } catch (error: any) {
-            console.error("Erro detalhado ao salvar item:", error);
             const msg = error.response?.data?.message || error.message || "Erro desconhecido";
             alert("Falha ao salvar: " + msg);
         } finally {

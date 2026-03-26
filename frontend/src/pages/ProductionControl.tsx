@@ -10,7 +10,7 @@ const ProductionControl: React.FC = () => {
 
     useEffect(() => { loadTires(); }, []);
 
-    const loadTires = async () => {
+    async function loadTires() {
         setLoading(true);
         try {
             const response = await api.get('/tires/by-status');

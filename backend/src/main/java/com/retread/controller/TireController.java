@@ -29,8 +29,10 @@ public class TireController {
     private TenantAccessService tenantAccessService;
 
     @GetMapping
-    public List<Tire> getAllTires() {
-        return tireRepository.findAllByTenant_Id(tenantAccessService.getRequiredTenantId());
+    public List<TireListResponse> getAllTires() {
+        return tireRepository.findAllByTenant_Id(tenantAccessService.getRequiredTenantId()).stream()
+                .map(TireListResponse::from)
+                .toList();
     }
 
     @PatchMapping("/{id}/status")
@@ -82,6 +84,50 @@ public class TireController {
     public record UpdateTireStatusRequest(
             @NotBlank String status,
             String observation
+    ) {
+    }
+
+    public record TireListResponse(
+            Long id,
+            String brand,
+            String size,
+            String serialNumber,
+            String licensePlate,
+            String status,
+            ServiceOrderSummary serviceOrder
+    ) {
+        static TireListResponse from(Tire tire) {
+            return new TireListResponse(
+                    tire.getId(),
+                    tire.getBrand(),
+                    tire.getSize(),
+                    tire.getSerialNumber(),
+                    tire.getLicensePlate(),
+                    tire.getStatus() != null ? tire.getStatus().name() : null,
+                    tire.getServiceOrder() != null
+                            ? new ServiceOrderSummary(
+                                    tire.getServiceOrder().getId(),
+                                    tire.getServiceOrder().getClient() != null
+                                            ? new ClientSummary(
+                                                    tire.getServiceOrder().getClient().getId(),
+                                                    tire.getServiceOrder().getClient().getName()
+                                            )
+                                            : null
+                            )
+                            : null
+            );
+        }
+    }
+
+    public record ServiceOrderSummary(
+            Long id,
+            ClientSummary client
+    ) {
+    }
+
+    public record ClientSummary(
+            Long id,
+            String name
     ) {
     }
 }

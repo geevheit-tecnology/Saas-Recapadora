@@ -11,13 +11,14 @@ const OrderForm: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedClientId, setSelectedClientId] = useState('');
     const [items, setItems] = useState<OrderItem[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         loadData();
     }, []);
 
-    const loadData = async () => {
+    async function loadData() {
         try {
             const [resClients, resProducts] = await Promise.all([
                 api.get('/clients'),
@@ -49,8 +50,17 @@ const OrderForm: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const clientId = parseInt(selectedClientId, 10);
+        if (Number.isNaN(clientId)) {
+            alert("Selecione um cliente valido.");
+            return;
+        }
+        if (items.some(item => !item.quantity || item.quantity <= 0)) {
+            alert("Todos os itens precisam ter quantidade maior que zero.");
+            return;
+        }
         const orderData = {
-            client: { id: parseInt(selectedClientId) },
+            client: { id: clientId },
             items: items.map(item => ({
                 product: { id: item.productId },
                 quantity: item.quantity,
@@ -59,10 +69,13 @@ const OrderForm: React.FC = () => {
         };
 
         try {
+            setIsSaving(true);
             await api.post('/orders', orderData);
             navigate('/orders');
-        } catch (error) {
-            console.error("Erro ao criar ordem", error);
+        } catch (error: any) {
+            alert("Erro ao criar ordem: " + (error.response?.data?.message || "Verifique os dados informados"));
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -173,10 +186,10 @@ const OrderForm: React.FC = () => {
                     <Link to="/orders" className="px-6 py-2.5 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors font-medium">Cancelar</Link>
                     <button 
                         type="submit" 
-                        disabled={!selectedClientId || items.length === 0}
+                        disabled={!selectedClientId || items.length === 0 || isSaving}
                         className="px-10 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold shadow-lg shadow-blue-200"
                     >
-                        Finalizar e Gerar Ordem
+                        {isSaving ? 'Salvando...' : 'Finalizar e Gerar Ordem'}
                     </button>
                 </div>
             </form>

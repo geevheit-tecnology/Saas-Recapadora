@@ -21,7 +21,7 @@ const TireLocator: React.FC = () => {
         loadTires();
     }, []);
 
-    const loadTires = async () => {
+    async function loadTires() {
         setLoading(true);
         try {
             const res = await api.get('/tires');

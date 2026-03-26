@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +70,37 @@ public class DashboardController {
                 .collect(Collectors.groupingBy(o -> o.getStatus().name(), Collectors.counting()));
         stats.put("ordersByStatus", ordersByStatus);
 
-        List<ServiceOrder> recentOrders = allOrders.stream()
+        List<RecentOrderResponse> recentOrders = allOrders.stream()
                 .sorted((o1, o2) -> o2.getOrderDate().compareTo(o1.getOrderDate()))
                 .limit(5)
+                .map(RecentOrderResponse::from)
                 .collect(Collectors.toList());
         stats.put("recentOrders", recentOrders);
 
         return stats;
+    }
+
+    public record RecentOrderResponse(
+            Long id,
+            ClientSummary client,
+            LocalDateTime orderDate,
+            String status,
+            BigDecimal totalAmount
+    ) {
+        static RecentOrderResponse from(ServiceOrder order) {
+            return new RecentOrderResponse(
+                    order.getId(),
+                    new ClientSummary(order.getClient().getId(), order.getClient().getName()),
+                    order.getOrderDate(),
+                    order.getStatus() != null ? order.getStatus().name() : null,
+                    order.getTotalAmount()
+            );
+        }
+    }
+
+    public record ClientSummary(
+            Long id,
+            String name
+    ) {
     }
 }

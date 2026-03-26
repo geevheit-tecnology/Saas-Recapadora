@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Truck, Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SupplierList: React.FC = () => {
     const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -8,22 +9,34 @@ const SupplierList: React.FC = () => {
     const [name, setName] = useState('');
     const [cnpj, setCnpj] = useState('');
     const [category, setCategory] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const { role } = useAuth();
+    const isAdmin = role === 'ROLE_ADMIN';
 
     useEffect(() => { loadSuppliers(); }, []);
 
-    const loadSuppliers = async () => {
+    async function loadSuppliers() {
         const res = await api.get('/suppliers');
         setSuppliers(res.data);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSaving(true);
         try {
-            await api.post('/suppliers', { name, cnpj, category });
+            await api.post('/suppliers', {
+                name: name.trim(),
+                cnpj: cnpj.trim() || null,
+                category: category.trim() || null
+            });
             setName(''); setCnpj(''); setCategory('');
             setShowForm(false);
             loadSuppliers();
-        } catch (e) { alert("Erro ao salvar fornecedor"); }
+        } catch (e: any) {
+            alert("Erro ao salvar fornecedor: " + (e.response?.data?.message || "Verifique os dados informados"));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -33,15 +46,17 @@ const SupplierList: React.FC = () => {
                     <h2 className="text-3xl font-black text-slate-800 tracking-tighter uppercase">Fornecedores</h2>
                     <p className="text-slate-500 font-medium italic underline decoration-blue-500 underline-offset-4">Parceiros de Matéria-prima</p>
                 </div>
-                <button 
-                    onClick={() => setShowForm(!showForm)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg shadow-blue-100"
-                >
-                    <Plus className="w-5 h-5" /> {showForm ? 'Fechar' : 'Novo Fornecedor'}
-                </button>
+                {isAdmin && (
+                    <button 
+                        onClick={() => setShowForm(!showForm)}
+                        className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black flex items-center gap-2 shadow-lg shadow-blue-100"
+                    >
+                        <Plus className="w-5 h-5" /> {showForm ? 'Fechar' : 'Novo Fornecedor'}
+                    </button>
+                )}
             </div>
 
-            {showForm && (
+            {showForm && isAdmin && (
                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-blue-50 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top duration-300">
                     <input 
                         className="p-4 rounded-xl border-2 border-slate-50 bg-slate-50 outline-none focus:border-blue-500 font-bold"
@@ -55,7 +70,9 @@ const SupplierList: React.FC = () => {
                         className="p-4 rounded-xl border-2 border-slate-50 bg-slate-50 outline-none focus:border-blue-500 font-bold"
                         placeholder="Categoria (ex: Borrachas)" value={category} onChange={e => setCategory(e.target.value)} 
                     />
-                    <button className="md:col-span-3 py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest">Cadastrar Fornecedor</button>
+                    <button disabled={isSaving} className="md:col-span-3 py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest disabled:opacity-50">
+                        {isSaving ? 'Salvando...' : 'Cadastrar Fornecedor'}
+                    </button>
                 </form>
             )}
 

@@ -29,7 +29,15 @@ const LoginPage: React.FC = () => {
                 setTimeout(() => navigate('/', { replace: true }), 100);
             }
         } catch (err: any) {
-            setError('Credenciais inválidas ou servidor offline.');
+            const status = err?.response?.status;
+            const message = err?.response?.data?.message;
+            if (status && message) {
+                setError(`${status}: ${message}`);
+            } else if (status) {
+                setError(`${status}: Falha ao autenticar.`);
+            } else {
+                setError('Servidor offline ou API inacessivel.');
+            }
         } finally {
             setIsLoading(false);
         }

@@ -21,16 +21,21 @@ const CollectionForm: React.FC = () => {
         api.get('/clients').then(res => setClients(res.data)).catch(err => console.error("Erro ao carregar clientes", err));
     }, []);
 
-    const addTire = () => {
+    function addTire() {
         if (!brand || !size || !serial) {
             alert("Preencha Marca, Medida e Nº de Série para adicionar.");
             return;
         }
+        const normalizedSerial = serial.trim().toUpperCase();
+        if (tires.some(tire => tire.serialNumber === normalizedSerial)) {
+            alert("Ja existe um pneu com esse numero de serie no lote.");
+            return;
+        }
         const newTire = { 
-            brand: brand.toUpperCase(), 
-            size: size.toUpperCase(), 
-            serialNumber: serial.toUpperCase(), 
-            licensePlate: plate.toUpperCase(),
+            brand: brand.trim().toUpperCase(), 
+            size: size.trim().toUpperCase(), 
+            serialNumber: normalizedSerial, 
+            licensePlate: plate.trim().toUpperCase(),
             status: 'COLLECTED' 
         };
         setTires([...tires, newTire]);
@@ -43,10 +48,15 @@ const CollectionForm: React.FC = () => {
             alert("Adicione pelo menos um pneu à lista antes de finalizar.");
             return;
         }
+        const clientId = parseInt(selectedClientId, 10);
+        if (Number.isNaN(clientId)) {
+            alert("Selecione um cliente valido.");
+            return;
+        }
         setIsLoading(true);
         try {
             const orderData = {
-                client: { id: parseInt(selectedClientId) },
+                client: { id: clientId },
                 status: 'OPEN',
                 tires: tires,
                 items: [] 

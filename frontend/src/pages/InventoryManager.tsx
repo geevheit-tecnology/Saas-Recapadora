@@ -17,17 +17,35 @@ const InventoryManager: React.FC = () => {
 
     const handlePurchase = async (e: React.FormEvent) => {
         e.preventDefault();
+        const productId = parseInt(selectedProduct, 10);
+        const supplierId = selectedSupplier ? parseInt(selectedSupplier, 10) : null;
+        const quantity = parseInt(qty, 10);
+        const unitCost = parseFloat(cost);
+        if (Number.isNaN(productId)) {
+            alert("Selecione um material.");
+            return;
+        }
+        if (Number.isNaN(quantity) || quantity <= 0) {
+            alert("Informe uma quantidade valida.");
+            return;
+        }
+        if (Number.isNaN(unitCost) || unitCost < 0) {
+            alert("Informe um custo unitario valido.");
+            return;
+        }
         try {
             await api.post('/inventory/purchase', {
-                productId: selectedProduct,
-                supplierId: selectedSupplier,
-                quantity: qty,
-                cost: cost
+                productId,
+                supplierId,
+                quantity,
+                cost: unitCost
             });
             alert("Compra registrada e estoque atualizado!");
             setQty(''); setCost('');
             api.get('/products').then(res => setProducts(res.data.filter((p:any) => p.type === 'MATERIAL')));
-        } catch (e) { alert("Erro ao registrar compra"); }
+        } catch (e: any) {
+            alert("Erro ao registrar compra: " + (e.response?.data?.message || "Verifique os dados informados"));
+        }
     };
 
     return (

@@ -40,6 +40,7 @@ public class Tire {
     
     private LocalDateTime lastUpdate;
 
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "tire", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // Lado "Pai" da relação com Histórico
     private List<TireHistory> history = new ArrayList<>();

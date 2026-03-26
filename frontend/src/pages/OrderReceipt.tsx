@@ -11,7 +11,7 @@ const OrderReceipt: React.FC = () => {
         api.get(`/orders/${id}`).then(res => setOrder(res.data));
     }, [id]);
 
-    const handlePrint = () => {
+    function handlePrint() {
         window.print();
     };
 

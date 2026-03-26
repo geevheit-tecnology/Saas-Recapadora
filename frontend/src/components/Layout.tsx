@@ -14,20 +14,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
 
     const allMenuItems = [
-        { path: '/', label: 'Painel Geral', icon: <LayoutDashboard size={18} />, roles: ['ROLE_ADMIN', 'ROLE_DIRETORIA'] },
-        { path: '/collection', label: 'Coleta / Logística', icon: <Truck size={18} />, roles: ['ROLE_ADMIN', 'ROLE_VENDAS'] },
-        { path: '/production', label: 'Fluxo de Fábrica', icon: <Factory size={18} />, roles: ['ROLE_ADMIN', 'ROLE_PRODUCAO'] },
-        { path: '/sales', label: 'Monitor de Vendas', icon: <Target size={18} />, roles: ['ROLE_ADMIN', 'ROLE_VENDAS'] },
-        { path: '/locator', label: 'Localizar Pneu', icon: <Search size={18} />, roles: ['ROLE_ADMIN', 'ROLE_PRODUCAO', 'ROLE_VENDAS'] },
-        { path: '/revenue', label: 'Financeiro', icon: <BarChart3 size={18} />, roles: ['ROLE_ADMIN', 'ROLE_DIRETORIA', 'ROLE_FATURAMENTO'] },
-        { path: '/prices', label: 'Tabela de Preços', icon: <Tag size={18} />, roles: ['ROLE_ADMIN', 'ROLE_FATURAMENTO'] },
-        { path: '/inventory', label: 'Estoque de Insumos', icon: <Package size={18} />, roles: ['ROLE_ADMIN', 'ROLE_FATURAMENTO'] },
-        { path: '/clients', label: 'Base de Clientes', icon: <Users size={18} />, roles: ['ROLE_ADMIN', 'ROLE_VENDAS'] },
-        { path: '/orders', label: 'Histórico de Ordens', icon: <ClipboardList size={18} />, roles: ['ROLE_ADMIN', 'ROLE_VENDAS', 'ROLE_FATURAMENTO'] },
+        { path: '/', label: 'Painel Geral', icon: <LayoutDashboard size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/collection', label: 'Coleta / Logística', icon: <Truck size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/production', label: 'Fluxo de Fábrica', icon: <Factory size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/sales', label: 'Monitor de Vendas', icon: <Target size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/locator', label: 'Localizar Pneu', icon: <Search size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/revenue', label: 'Financeiro', icon: <BarChart3 size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/prices', label: 'Tabela de Preços', icon: <Tag size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/inventory', label: 'Estoque de Insumos', icon: <Package size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/clients', label: 'Base de Clientes', icon: <Users size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
+        { path: '/orders', label: 'Histórico de Ordens', icon: <ClipboardList size={18} />, roles: ['ROLE_ADMIN', 'ROLE_USER'] },
         { path: '/users', label: 'Controle de Acesso', icon: <ShieldCheck size={18} />, roles: ['ROLE_ADMIN'] },
     ];
 
-    const currentRole = role || 'ROLE_ADMIN'; 
+    const currentRole = role || 'ROLE_USER'; 
     const filteredMenu = allMenuItems.filter(item => item.roles.includes(currentRole));
 
     return (

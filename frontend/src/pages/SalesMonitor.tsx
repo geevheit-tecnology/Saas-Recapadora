@@ -9,7 +9,7 @@ const SalesMonitor: React.FC = () => {
 
     useEffect(() => { loadOrders(); }, []);
 
-    const loadOrders = async () => {
+    async function loadOrders() {
         setLoading(true);
         try {
             const res = await api.get('/orders');

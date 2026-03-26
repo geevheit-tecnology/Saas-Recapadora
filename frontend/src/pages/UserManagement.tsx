@@ -12,7 +12,7 @@ const UserManagement: React.FC = () => {
 
     useEffect(() => { loadUsers(); }, []);
 
-    const loadUsers = async () => {
+    async function loadUsers() {
         try {
             const res = await api.get('/users');
             setUsers(res.data);
@@ -75,10 +75,7 @@ const UserManagement: React.FC = () => {
                             value={role} onChange={e => setRole(e.target.value)}
                         >
                             <option value="ADMIN">ADMIN (Total)</option>
-                            <option value="DIRETORIA">DIRETORIA (Relatórios)</option>
-                            <option value="VENDAS">VENDAS (Comercial)</option>
-                            <option value="PRODUCAO">PRODUÇÃO (Fábrica)</option>
-                            <option value="FATURAMENTO">FATURAMENTO (Fiscal)</option>
+                            <option value="USER">OPERACIONAL (Padrão)</option>
                         </select>
                     </div>
                     <button className="md:col-span-3 py-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest shadow-lg text-xs">Ativar Credencial</button>
